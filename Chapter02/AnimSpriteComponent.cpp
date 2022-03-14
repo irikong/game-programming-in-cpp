@@ -13,37 +13,36 @@ AnimSpriteComponent::AnimSpriteComponent(Actor* owner, int drawOrder)
 	:SpriteComponent(owner, drawOrder)
 	, mCurrFrame(0.0f)
 	, mAnimFPS(24.0f)
+	, mCurrAnim("")
 {
 }
 
 void AnimSpriteComponent::Update(float deltaTime)
 {
 	SpriteComponent::Update(deltaTime);
+	if (mCurrAnim.empty()) return;
 
-	if (mAnimTextures.size() > 0)
+	std::vector<SDL_Texture*>& currAnim = mAnimTextures[mCurrAnim].first;
+	bool isLoop = mAnimTextures[mCurrAnim].second;
+
+	if (currAnim.size() > 0)
 	{
 		// Update the current frame based on frame rate
 		// and delta time
 		mCurrFrame += mAnimFPS * deltaTime;
-		
 		// Wrap current frame if needed
-		while (mCurrFrame >= mAnimTextures.size())
+		while (mCurrFrame >= mAnimTextures[mCurrAnim].first.size())
 		{
-			mCurrFrame -= mAnimTextures.size();
+			mCurrFrame -= isLoop ? currAnim.size() : 1;
 		}
 
 		// Set the current texture
-		SetTexture(mAnimTextures[static_cast<int>(mCurrFrame)]);
+		SetTexture(currAnim[static_cast<int>(mCurrFrame)]);
 	}
 }
 
-void AnimSpriteComponent::SetAnimTextures(const std::vector<SDL_Texture*>& textures)
+void AnimSpriteComponent::SetAnimTextures(const std::string& animName, const std::vector<SDL_Texture*>& textures, bool isLoop)
 {
-	mAnimTextures = textures;
-	if (mAnimTextures.size() > 0)
-	{
-		// Set the active texture to first frame
-		mCurrFrame = 0.0f;
-		SetTexture(mAnimTextures[0]);
-	}
+	mAnimTextures[animName].first = textures;
+	mAnimTextures[animName].second = isLoop;
 }
