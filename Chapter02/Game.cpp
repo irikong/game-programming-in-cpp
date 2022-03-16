@@ -14,6 +14,7 @@
 #include "Ship.h"
 #include "Character.h"
 #include "BGSpriteComponent.h"
+#include "TileMapComponent.h"
 
 Game::Game()
 :mWindow(nullptr)
@@ -167,23 +168,31 @@ void Game::LoadData()
 	Actor* temp = new Actor(this);
 	temp->SetPosition(Vector2(512.0f, 384.0f));
 	// Create the "far back" background
-	BGSpriteComponent* bg = new BGSpriteComponent(temp);
-	bg->SetScreenSize(Vector2(1024.0f, 768.0f));
-	std::vector<SDL_Texture*> bgtexs = {
-		GetTexture("Assets/Farback01.png"),
-		GetTexture("Assets/Farback02.png")
-	};
-	bg->SetBGTextures(bgtexs);
-	bg->SetScrollSpeed(-100.0f);
-	// Create the closer background
-	bg = new BGSpriteComponent(temp, 50);
-	bg->SetScreenSize(Vector2(1024.0f, 768.0f));
-	bgtexs = {
-		GetTexture("Assets/Stars.png"),
-		GetTexture("Assets/Stars.png")
-	};
-	bg->SetBGTextures(bgtexs);
-	bg->SetScrollSpeed(-200.0f);
+	//BGSpriteComponent* bg = new BGSpriteComponent(temp);
+	//bg->SetScreenSize(Vector2(1024.0f, 768.0f));
+	//std::vector<SDL_Texture*> bgtexs = {
+	//	GetTexture("Assets/Farback01.png"),
+	//	GetTexture("Assets/Farback02.png")
+	//};
+	//bg->SetBGTextures(bgtexs);
+	//bg->SetScrollSpeed(-100.0f);
+	//// Create the closer background
+	//bg = new BGSpriteComponent(temp, 50);
+	//bg->SetScreenSize(Vector2(1024.0f, 768.0f));
+	//bgtexs = {
+	//	GetTexture("Assets/Stars.png"),
+	//	GetTexture("Assets/Stars.png")
+	//};
+	//bg->SetBGTextures(bgtexs);
+	//bg->SetScrollSpeed(-200.0f);
+	// Create tile map
+	SDL_Texture* tmtex = GetTexture("Assets/Tiles.png");
+	TileMapComponent* tm = new TileMapComponent(temp, 10);
+	tm->SetTMTextures(tmtex, "Assets/MapLayer3.csv");
+	tm = new TileMapComponent(temp, 20);
+	tm->SetTMTextures(tmtex, "Assets/MapLayer2.csv");
+	tm = new TileMapComponent(temp, 30);
+	tm->SetTMTextures(tmtex, "Assets/MapLayer1.csv");
 }
 
 void Game::UnloadData()
