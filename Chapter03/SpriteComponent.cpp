@@ -16,6 +16,7 @@ SpriteComponent::SpriteComponent(Actor* owner, int drawOrder)
 	,mDrawOrder(drawOrder)
 	,mTexWidth(0)
 	,mTexHeight(0)
+	,mIsVisible(true)
 {
 	mOwner->GetGame()->AddSprite(this);
 }
@@ -27,7 +28,7 @@ SpriteComponent::~SpriteComponent()
 
 void SpriteComponent::Draw(SDL_Renderer* renderer)
 {
-	if (mTexture)
+	if (mTexture && mIsVisible)
 	{
 		SDL_Rect r;
 		// Scale the width/height by owner's scale
