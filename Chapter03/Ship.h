@@ -16,5 +16,10 @@ public:
 	void UpdateActor(float deltaTime) override;
 	void ActorInput(const uint8_t* keyState) override;
 private:
+	class CircleComponent* mCircle;
+	class SpriteComponent* mSC;
+	class InputComponent* mIC;
 	float mLaserCooldown;
+	float mRespawnCooldown;
+	bool mIsAlive;
 };
