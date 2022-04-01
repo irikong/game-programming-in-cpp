@@ -23,9 +23,26 @@ Laser::Laser(Game* game)
 
 	// Create a move component, and set a forward speed
 	MoveComponent* mc = new MoveComponent(this);
-	mc->SetForwardSpeed(800.0f);
+	mc->SetVelocity(GetForward() * 500.0f);
 
 	// Create a circle component (for collision)
+	mCircle = new CircleComponent(this);
+	mCircle->SetRadius(11.0f);
+}
+
+Laser::Laser(Game* game, Actor* parent)
+	:Actor(game)
+	,mDeathTimer(1.0f)
+{
+	SpriteComponent* sc = new SpriteComponent(this);
+	sc->SetTexture(game->GetTexture("Assets/Laser.png"));
+
+	MoveComponent* mc = new MoveComponent(this);
+	SetPosition(parent->GetPosition());
+	SetRotation(parent->GetRotation());
+	//mc->AddForce(GetForward() * mc->GetMass() * 20000.0f);
+	mc->SetVelocity(GetForward() * 500.0f);
+
 	mCircle = new CircleComponent(this);
 	mCircle->SetRadius(11.0f);
 }

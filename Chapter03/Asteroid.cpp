@@ -18,8 +18,7 @@ Asteroid::Asteroid(Game* game)
 	,mCircle(nullptr)
 {
 	// Initialize to random position/orientation
-	Vector2 randPos = Random::GetVector(Vector2::Zero,
-		Vector2(1024.0f, 768.0f));
+	Vector2 randPos = Random::GetVector(Vector2::Zero, Vector2(1024.0f, 768.0f));
 	SetPosition(randPos);
 
 	SetRotation(Random::GetFloatRange(0.0f, Math::TwoPi));
@@ -30,7 +29,8 @@ Asteroid::Asteroid(Game* game)
 
 	// Create a move component, and set a forward speed
 	MoveComponent* mc = new MoveComponent(this);
-	mc->SetForwardSpeed(150.0f);
+	//mc->AddForce(GetForward() * mc->GetMass() * 5000.0f);
+	mc->SetVelocity(GetForward() * 100.0f);
 
 	// Create a circle component (for collision)
 	mCircle = new CircleComponent(this);

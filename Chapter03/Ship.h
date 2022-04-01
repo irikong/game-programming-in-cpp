@@ -18,6 +18,7 @@ public:
 private:
 	class CircleComponent* mCircle;
 	class SpriteComponent* mSC;
+	class InputComponent* mIC;
 	float mLaserCooldown;
 	float mRespawnCooldown;
 	bool mIsAlive;
