@@ -18,6 +18,7 @@ Ship::Ship(Game* game)
 	:Actor(game)
 	,mLaserCooldown(0.0f)
 	,mRespawnCooldown(0.0f)
+	,mIsAlive(true)
 {
 	// Create a sprite component
 	mSC = new SpriteComponent(this, 150);
