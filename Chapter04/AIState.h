@@ -27,8 +27,8 @@ protected:
 class AIPatrol : public AIState
 {
 public:
-	AIPatrol(class AIComponent* owner)
-		:AIState(owner)
+	AIPatrol(class AIComponent* owner, class Tower* tower)
+		:AIState(owner), mTower(tower)
 	{ }
 
 	// Override with behaviors for this state
@@ -38,6 +38,9 @@ public:
 
 	const char* GetName() const override
 	{ return "Patrol"; }
+
+private:
+	class Tower* mTower;
 };
 
 class AIDeath : public AIState
@@ -58,8 +61,8 @@ public:
 class AIAttack : public AIState
 {
 public:
-	AIAttack(class AIComponent* owner)
-		:AIState(owner)
+	AIAttack(class AIComponent* owner, class Tower* tower)
+		:AIState(owner), mTower(tower)
 	{ }
 
 	void Update(float deltaTime) override;
@@ -68,4 +71,7 @@ public:
 
 	const char* GetName() const override
 	{ return "Attack"; }
+
+private:
+	class Tower* mTower;
 };
