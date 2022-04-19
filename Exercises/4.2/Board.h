@@ -19,6 +19,7 @@ public:
 	float GetScore() const;
 
 	SquareState mBoard[6][7];
+
 protected:
 	bool IsFull() const;
 	int GetFourInARow() const;
@@ -30,3 +31,6 @@ bool TryPlayerMove(class BoardState* state, int column);
 
 // Make the next CPU move
 void CPUMove(class BoardState* state);
+const BoardState* AlphaBetaDecide(const BoardState* root, int maxDepth);
+float ABMin(const BoardState* node, int depth, float alpha, float beta);
+float ABMax(const BoardState* node, int depth, float alpha, float beta);

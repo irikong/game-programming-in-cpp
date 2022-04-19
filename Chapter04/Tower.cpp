@@ -12,6 +12,8 @@
 #include "Game.h"
 #include "Enemy.h"
 #include "Bullet.h"
+#include "AIComponent.h"
+#include "AIState.h"
 
 Tower::Tower(class Game* game)
 :Actor(game)
@@ -23,6 +25,11 @@ Tower::Tower(class Game* game)
 	//mMove->SetAngularSpeed(Math::Pi);
 	
 	mNextAttack = AttackTime;
+
+	mAIC = new AIComponent(this);
+	mAIC->RegisterState(new AIPatrol(mAIC, this));
+	mAIC->RegisterState(new AIAttack(mAIC, this));
+	mAIC->ChangeState("Patrol");
 }
 
 void Tower::UpdateActor(float deltaTime)
@@ -30,24 +37,14 @@ void Tower::UpdateActor(float deltaTime)
 	Actor::UpdateActor(deltaTime);
 	
 	mNextAttack -= deltaTime;
-	if (mNextAttack <= 0.0f)
-	{
-		Enemy* e = GetGame()->GetNearestEnemy(GetPosition());
-		if (e != nullptr)
-		{
-			// Vector from me to enemy
-			Vector2 dir = e->GetPosition() - GetPosition();
-			float dist = dir.Length();
-			if (dist < AttackRange)
-			{
-				// Rotate to face enemy
-				SetRotation(Math::Atan2(-dir.y, dir.x));
-				// Spawn bullet at tower position facing enemy
-				Bullet* b = new Bullet(GetGame());
-				b->SetPosition(GetPosition());
-				b->SetRotation(GetRotation());
-			}
-		}
+}
+
+void Tower::Shoot()
+{
+	if (mNextAttack <= 0.0f) {
+		Bullet* b = new Bullet(GetGame());
+		b->SetPosition(GetPosition());
+		b->SetRotation(GetRotation());
 		mNextAttack += AttackTime;
 	}
 }

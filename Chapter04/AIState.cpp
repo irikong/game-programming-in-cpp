@@ -8,15 +8,24 @@
 
 #include "AIState.h"
 #include "AIComponent.h"
+#include "Actor.h"
+#include "Enemy.h"
+#include "Game.h"
+#include "Math.h"
+#include "Tower.h"
 #include <SDL/SDL_log.h>
 
 void AIPatrol::Update(float deltaTime)
 {
-	SDL_Log("Updating %s state", GetName());
-	bool dead = true;
-	if (dead)
-	{
-		mOwner->ChangeState("Death");
+	mTower->SetRotation(mTower->GetRotation() + Math::Pi * deltaTime);
+
+	Enemy* e = mTower->GetGame()->GetNearestEnemy(mTower->GetPosition());
+	if (e) {
+		float dist = (e->GetPosition() - mTower->GetPosition()).Length();
+		if (dist < mTower->GetAttackRange()) {
+			mTower->SetTarget(e);
+			mOwner->ChangeState("Attack");
+		}
 	}
 }
 
@@ -47,7 +56,21 @@ void AIDeath::OnExit()
 
 void AIAttack::Update(float deltaTime)
 {
-	SDL_Log("Updating %s state", GetName());
+	Enemy* e = mTower->GetTarget();
+	if (!e) {
+		mOwner->ChangeState("Patrol");
+		return;
+	}
+
+	Vector2 dir = e->GetPosition() - mTower->GetPosition();
+	float dist = dir.Length();
+	if (dist < mTower->GetAttackRange()) {
+		mTower->SetRotation(Math::Atan2(-dir.y, dir.x));
+		mTower->Shoot();
+	}
+	else {
+		mOwner->ChangeState("Patrol");
+	}
 }
 
 void AIAttack::OnEnter()

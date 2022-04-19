@@ -67,13 +67,6 @@ float BoardState::GetScore() const
 		return 0.0f;
 	}
 
-	// Is there a four-in-a-row?
-	int fourInRow = GetFourInARow();
-	if (fourInRow != 0)
-	{
-		return static_cast<float>(fourInRow);
-	}
-
 	return CalculateHeuristic();
 }
 
@@ -186,8 +179,97 @@ int BoardState::GetFourInARow() const
 
 float BoardState::CalculateHeuristic() const
 {
-	// TODO: You could change this to calculate an actual heuristic
-	return 0.0f;
+	float retVal = 0.0f;
+
+	// Horizontal & Vertical
+	for (int r = 0; r < 6; r++) {
+		int c = 0, cnt = 0, temp = 0;
+		while (c < 6) {
+			if (mBoard[r][c] == mBoard[r][c + 1]) {
+				cnt++;
+			}
+			else {
+				temp = pow(cnt, 4);
+				if (mBoard[r][c] == BoardState::Red) retVal += temp;
+				else if (mBoard[r][c] == BoardState::Yellow) retVal -= temp;
+
+				cnt = temp = 0;
+			}
+
+			c++;
+		}
+
+		if (cnt) {
+			temp = pow(cnt, 4);
+			if (mBoard[r][c] == BoardState::Red) retVal += temp;
+			else if (mBoard[r][c] == BoardState::Yellow) retVal -= temp;
+		}
+	}
+	for (int c = 0; c < 7; c++) {
+		int r = 0, cnt = 0, temp = 0;
+		while (r < 5) {
+			if (mBoard[r][c] == mBoard[r + 1][c]) {
+				cnt++;
+			}
+			else {
+				temp = pow(cnt, 4);
+				if (mBoard[r][c] == BoardState::Red) retVal += temp;
+				else if (mBoard[r][c] == BoardState::Yellow) retVal -= temp;
+
+				cnt = temp = 0;
+			}
+
+			r++;
+		}
+
+		if (cnt) {
+			temp = pow(cnt, 4);
+			if (mBoard[r][c] == BoardState::Red) retVal += temp;
+			else if (mBoard[r][c] == BoardState::Yellow) retVal -= temp;
+		}
+	}
+
+	// Diagonal
+	for (int col = 0; col < 4; col++)
+	{
+		for (int row = 0; row < 3; row++)
+		{
+			if (mBoard[row][col] == mBoard[row + 1][col + 1] &&
+				mBoard[row][col] == mBoard[row + 2][col + 2] &&
+				mBoard[row][col] == mBoard[row + 3][col + 3])
+			{
+				if (mBoard[row][col] == BoardState::Red)
+				{
+					retVal += 1000;
+				}
+				if (mBoard[row][col] == BoardState::Yellow)
+				{
+					retVal -= 1000;
+				}
+			}
+		}
+	}
+	for (int col = 0; col < 4; col++)
+	{
+		for (int row = 3; row < 6; row++)
+		{
+			if (mBoard[row][col] == mBoard[row - 1][col + 1] &&
+				mBoard[row][col] == mBoard[row - 2][col + 2] &&
+				mBoard[row][col] == mBoard[row - 3][col + 3])
+			{
+				if (mBoard[row][col] == BoardState::Red)
+				{
+					retVal += 1000;
+				}
+				if (mBoard[row][col] == BoardState::Yellow)
+				{
+					retVal -= 1000;
+				}
+			}
+		}
+	}
+
+	return retVal;
 }
 
 bool TryPlayerMove(BoardState* state, int column)
@@ -208,16 +290,57 @@ bool TryPlayerMove(BoardState* state, int column)
 
 void CPUMove(BoardState* state)
 {
-	// For now, this just randomly picks one of the possible moves
-	std::vector<BoardState*> moves = state->GetPossibleMoves(BoardState::Red);
+	*state = *AlphaBetaDecide(state, 4);
+}
 
-	int index = Random::GetIntRange(0, moves.size() - 1);
-
-	*state = *moves[index];
-
-	// Clear up memory from possible moves
-	for (auto state : moves)
-	{
-		delete state;
+const BoardState* AlphaBetaDecide(const BoardState* root, int maxDepth)
+{
+	const BoardState* choice = nullptr;
+	float maxValue = -std::numeric_limits<float>::infinity();
+	float beta = std::numeric_limits<float>::infinity();
+	for (const BoardState* child : root->GetPossibleMoves(BoardState::Red)) {
+		float v = ABMin(child, maxDepth - 1, maxValue, beta);
+		if (v > maxValue) {
+			maxValue = v;
+			choice = child;
+		}
 	}
+
+	return choice;
+}
+
+float ABMax(const BoardState* node, int depth, float alpha, float beta)
+{
+	if (!depth || node->IsTerminal()) {
+		return node->GetScore();
+	}
+
+	float maxValue = -std::numeric_limits<float>::infinity();
+	for (const BoardState* child : node->GetPossibleMoves(BoardState::Red)) {
+		maxValue = std::max(maxValue, ABMin(child, depth - 1, alpha, beta));
+		if (maxValue >= beta) {
+			return maxValue;
+		}
+		alpha = std::max(maxValue, alpha);
+	}
+
+	return maxValue;
+}
+
+float ABMin(const BoardState* node, int depth, float alpha, float beta)
+{
+	if (!depth || node->IsTerminal()) {
+		return node->GetScore();
+	}
+
+	float minValue = std::numeric_limits<float>::infinity();
+	for (const BoardState* child : node->GetPossibleMoves(BoardState::Yellow)) {
+		minValue = std::min(minValue, ABMax(child, depth - 1, alpha, beta));
+		if (minValue <= alpha) {
+			return minValue;
+		}
+		beta = std::min(minValue, alpha);
+	}
+
+	return minValue;
 }
