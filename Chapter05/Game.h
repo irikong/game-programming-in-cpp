@@ -68,4 +68,7 @@ private:
 	// Game-specific
 	class Ship* mShip;
 	std::vector<class Asteroid*> mAsteroids;
+
+	float mBGColor[3];
+	int mColorSelected;
 };

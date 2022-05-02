@@ -16,9 +16,11 @@ uniform mat4 uViewProj;
 // Attribute 0 is position, 1 is tex coords.
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec2 inTexCoord;
+layout(location = 2) in vec3 inVerColor;
 
 // Add texture coordinate as output
 out vec2 fragTexCoord;
+out vec3 fragVerColor;
 
 void main()
 {
@@ -30,4 +32,5 @@ void main()
 	// Transform
 	// Pass along the texture coordinate to frag shader
 	fragTexCoord = inTexCoord;
+	fragVerColor = inVerColor;
 }

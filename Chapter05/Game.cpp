@@ -24,6 +24,8 @@ Game::Game()
 ,mSpriteShader(nullptr)
 ,mIsRunning(true)
 ,mUpdatingActors(false)
+,mBGColor{0.0f, 0.0f, 1.0f}
+,mColorSelected(0)
 {
 	
 }
@@ -143,6 +145,19 @@ void Game::UpdateGame()
 	}
 	mTicksCount = SDL_GetTicks();
 
+	// Update BackGround Color
+	mBGColor[mColorSelected] += deltaTime * 0.5f;
+	mBGColor[(mColorSelected + 2) % 3] -= deltaTime * 0.5f;
+	if (1.0f <= mBGColor[mColorSelected]) {
+		mBGColor[(mColorSelected + 2) % 3] = 0.0f;
+
+		int over = mBGColor[mColorSelected] - 1.0f;
+		mBGColor[mColorSelected] = 1.0f;
+
+		mColorSelected = (mColorSelected + 1) % 3;
+		mBGColor[mColorSelected] = over;
+	}
+
 	// Update all actors
 	mUpdatingActors = true;
 	for (auto actor : mActors)
@@ -178,8 +193,9 @@ void Game::UpdateGame()
 
 void Game::GenerateOutput()
 {
-	// Set the clear color to grey
-	glClearColor(0.86f, 0.86f, 0.86f, 1.0f);
+	// Set the clear color
+	glClearColor(mBGColor[0], mBGColor[1], mBGColor[2], 1.0f);
+
 	// Clear the color buffer
 	glClear(GL_COLOR_BUFFER_BIT);
 	
@@ -218,10 +234,10 @@ bool Game::LoadShaders()
 void Game::CreateSpriteVerts()
 {
 	float vertices[] = {
-		-0.5f,  0.5f, 0.f, 0.f, 0.f, // top left
-		 0.5f,  0.5f, 0.f, 1.f, 0.f, // top right
-		 0.5f, -0.5f, 0.f, 1.f, 1.f, // bottom right
-		-0.5f, -0.5f, 0.f, 0.f, 1.f  // bottom left
+		-0.5f,  0.5f, 0.f, 0.f, 0.f, 0.0f, 0.0f, 0.0f, // top left
+		 0.5f,  0.5f, 0.f, 1.f, 0.f, 1.0f, 0.0f, 0.0f, // top right
+		 0.5f, -0.5f, 0.f, 1.f, 1.f, 0.0f, 1.0f, 0.0f, // bottom right
+		-0.5f, -0.5f, 0.f, 0.f, 1.f, 0.0f, 0.0f, 1.0f  // bottom left
 	};
 
 	unsigned int indices[] = {
