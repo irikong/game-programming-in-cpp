@@ -144,14 +144,23 @@ void Game::LoadData()
 	Quaternion q(Vector3::UnitY, -Math::PiOver2);
 	q = Quaternion::Concatenate(q, Quaternion(Vector3::UnitZ, Math::Pi + Math::Pi / 4.0f));
 	a->SetRotation(q);
-	MeshComponent* mc = new MeshComponent(a);
-	mc->SetMesh(mRenderer->GetMesh("Assets/Cube.gpmesh"));
+	MeshComponent* mc = new MeshComponent(a, mRenderer->GetMesh("Assets/Cube.gpmesh"));
+
+	a = new Actor(this);
+	a->SetPosition(Vector3(200.0f, 75.0f, 100.0f));
+	a->SetScale(100.0f);
+	a->SetRotation(q);
+	mc = new MeshComponent(a, mRenderer->GetMesh("Assets/PhongCube.gpmesh"));
 
 	a = new Actor(this);
 	a->SetPosition(Vector3(200.0f, -75.0f, 0.0f));
 	a->SetScale(3.0f);
-	mc = new MeshComponent(a);
-	mc->SetMesh(mRenderer->GetMesh("Assets/Sphere.gpmesh"));
+	mc = new MeshComponent(a, mRenderer->GetMesh("Assets/Sphere.gpmesh"));
+
+	a = new Actor(this);
+	a->SetPosition(Vector3(100.0f, -75.0f, 0.0f));
+	a->SetScale(3.0f);
+	mc = new MeshComponent(a, mRenderer->GetMesh("Assets/PhongSphere.gpmesh"));
 
 	// Setup floor
 	const float start = -1250.0f;
