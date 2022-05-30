@@ -322,8 +322,10 @@ void Renderer::SetLightUniforms(Shader* shader)
 	Matrix4 invView = mView;
 	invView.Invert();
 	shader->SetVectorUniform("uCameraPos", invView.GetTranslation());
+	
 	// Ambient light
 	shader->SetVectorUniform("uAmbientLight", mAmbientLight);
+	
 	// Directional light
 	shader->SetVectorUniform("uDirLight.mDirection",
 		mDirLight.mDirection);
@@ -331,4 +333,20 @@ void Renderer::SetLightUniforms(Shader* shader)
 		mDirLight.mDiffuseColor);
 	shader->SetVectorUniform("uDirLight.mSpecColor",
 		mDirLight.mSpecColor);
+
+	// Point light
+	for (int i = 0; i < mPtLights.size(); i++) {
+		char name[50];
+
+		snprintf(name, 50, "uPtLights[%d].mPosition", i);
+		shader->SetVectorUniform(name, mPtLights[i].mPosition);
+		snprintf(name, 50, "uPtLights[%d].mDiffuseColor", i);
+		shader->SetVectorUniform(name, mPtLights[i].mDiffuseColor);
+		snprintf(name, 50, "uPtLights[%d].mSpecColor", i);
+		shader->SetVectorUniform(name, mPtLights[i].mSpecColor);
+		snprintf(name, 50, "uPtLights[%d].mSpecPower", i);
+		shader->SetFloatUniform(name, mPtLights[i].mSpecPower);
+		snprintf(name, 50, "uPtLights[%d].mFallOffRange", i);
+		shader->SetFloatUniform(name, mPtLights[i].mFallOffRange);
+	}
 }
