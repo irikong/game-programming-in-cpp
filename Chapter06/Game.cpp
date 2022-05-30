@@ -144,14 +144,23 @@ void Game::LoadData()
 	Quaternion q(Vector3::UnitY, -Math::PiOver2);
 	q = Quaternion::Concatenate(q, Quaternion(Vector3::UnitZ, Math::Pi + Math::Pi / 4.0f));
 	a->SetRotation(q);
-	MeshComponent* mc = new MeshComponent(a);
-	mc->SetMesh(mRenderer->GetMesh("Assets/Cube.gpmesh"));
+	MeshComponent* mc = new MeshComponent(a, mRenderer->GetMesh("Assets/Cube.gpmesh"));
+
+	//a = new Actor(this);
+	//a->SetPosition(Vector3(200.0f, 75.0f, 100.0f));
+	//a->SetScale(100.0f);
+	//a->SetRotation(q);
+	//mc = new MeshComponent(a, mRenderer->GetMesh("Assets/PhongCube.gpmesh"));
+
+	//a = new Actor(this);
+	//a->SetPosition(Vector3(200.0f, -75.0f, 0.0f));
+	//a->SetScale(3.0f);
+	//mc = new MeshComponent(a, mRenderer->GetMesh("Assets/Sphere.gpmesh"));
 
 	a = new Actor(this);
-	a->SetPosition(Vector3(200.0f, -75.0f, 0.0f));
+	a->SetPosition(Vector3(100.0f, -75.0f, 0.0f));
 	a->SetScale(3.0f);
-	mc = new MeshComponent(a);
-	mc->SetMesh(mRenderer->GetMesh("Assets/Sphere.gpmesh"));
+	mc = new MeshComponent(a, mRenderer->GetMesh("Assets/PhongSphere.gpmesh"));
 
 	// Setup floor
 	const float start = -1250.0f;
@@ -197,6 +206,29 @@ void Game::LoadData()
 	dir.mDirection = Vector3(0.0f, -0.707f, -0.707f);
 	dir.mDiffuseColor = Vector3(0.78f, 0.88f, 1.0f);
 	dir.mSpecColor = Vector3(0.8f, 0.8f, 0.8f);
+
+	std::vector<PointLight>& pts = mRenderer->GetPointLights();
+	PointLight pt;
+	pt.mPosition = Vector3(50.0f, -25.0f, 0.0f);
+	pt.mDiffuseColor = Vector3(1.0f, 0.0f, 0.0f);
+	pt.mSpecColor = Vector3(1.0f, 1.0f, 1.0f);
+	pt.mSpecPower = 10.0f;
+	pt.mFallOffRange = 100.0f;
+	pts.push_back(pt);
+
+	pt.mPosition = Vector3(50.0f, -125.0f, 0.0f);
+	pt.mDiffuseColor = Vector3(0.0f, 1.0f, 0.0f);
+	pt.mSpecColor = Vector3(1.0f, 1.0f, 1.0f);
+	pt.mSpecPower = 10.0f;
+	pt.mFallOffRange = 100.0f;
+	pts.push_back(pt);
+
+	pt.mPosition = Vector3(50.0f, -75.0f, 50.0f);
+	pt.mDiffuseColor = Vector3(0.0f, 0.0f, 1.0f);
+	pt.mSpecColor = Vector3(1.0f, 1.0f, 1.0f);
+	pt.mSpecPower = 100.0f;
+	pt.mFallOffRange = 100.0f;
+	pts.push_back(pt);
 
 	// Camera actor
 	mCameraActor = new CameraActor(this);

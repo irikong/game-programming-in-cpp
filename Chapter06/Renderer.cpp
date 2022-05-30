@@ -19,8 +19,11 @@
 Renderer::Renderer(Game* game)
 	:mGame(game)
 	,mSpriteShader(nullptr)
-	,mMeshShader(nullptr)
+	,mBasicMeshShader(nullptr)
+	,mPhongShader(nullptr)
 {
+	mMeshComps["BasicMesh"] = std::vector<class MeshComponent*>();
+	mMeshComps["Phong"] = std::vector<class MeshComponent*>();
 }
 
 Renderer::~Renderer()
@@ -90,8 +93,10 @@ void Renderer::Shutdown()
 	delete mSpriteVerts;
 	mSpriteShader->Unload();
 	delete mSpriteShader;
-	mMeshShader->Unload();
-	delete mMeshShader;
+	mBasicMeshShader->Unload();
+	delete mBasicMeshShader;
+	mPhongShader->Unload();
+	delete mPhongShader;
 	SDL_GL_DeleteContext(mContext);
 	SDL_DestroyWindow(mWindow);
 }
@@ -126,15 +131,26 @@ void Renderer::Draw()
 	// Enable depth buffering/disable alpha blend
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
-	// Set the mesh shader active
-	mMeshShader->SetActive();
+
+	Matrix4 viewProj = mView * mProjection;
+	// Set the basic mesh shader active
+	mBasicMeshShader->SetActive();
 	// Update view-projection matrix
-	mMeshShader->SetMatrixUniform("uViewProj", mView * mProjection);
-	// Update lighting uniforms
-	SetLightUniforms(mMeshShader);
-	for (auto mc : mMeshComps)
+	mBasicMeshShader->SetMatrixUniform("uViewProj", viewProj);
+	for (auto mc : mMeshComps["BasicMesh"])
 	{
-		mc->Draw(mMeshShader);
+		mc->Draw(mBasicMeshShader);
+	}
+
+	// Set the phong shader active
+	mPhongShader->SetActive();
+	// Update view-projection matrix
+	mPhongShader->SetMatrixUniform("uViewProj", viewProj);
+	// Update lighting uniforms
+	SetLightUniforms(mPhongShader);
+	for (auto mc : mMeshComps["Phong"])
+	{
+		mc->Draw(mPhongShader);
 	}
 
 	// Draw all sprite components
@@ -185,13 +201,14 @@ void Renderer::RemoveSprite(SpriteComponent* sprite)
 
 void Renderer::AddMeshComp(MeshComponent* mesh)
 {
-	mMeshComps.emplace_back(mesh);
+	mMeshComps[mesh->GetShaderName()].emplace_back(mesh);
 }
 
 void Renderer::RemoveMeshComp(MeshComponent* mesh)
 {
-	auto iter = std::find(mMeshComps.begin(), mMeshComps.end(), mesh);
-	mMeshComps.erase(iter);
+	std::vector<MeshComponent*>& meshComps = mMeshComps[mesh->GetShaderName()];
+	auto iter = std::find(meshComps.begin(), meshComps.end(), mesh);
+	meshComps.erase(iter);
 }
 
 Texture* Renderer::GetTexture(const std::string& fileName)
@@ -250,25 +267,35 @@ bool Renderer::LoadShaders()
 	{
 		return false;
 	}
-
 	mSpriteShader->SetActive();
 	// Set the view-projection matrix
 	Matrix4 viewProj = Matrix4::CreateSimpleViewProj(mScreenWidth, mScreenHeight);
 	mSpriteShader->SetMatrixUniform("uViewProj", viewProj);
 
-	// Create basic mesh shader
-	mMeshShader = new Shader();
-	if (!mMeshShader->Load("Shaders/Phong.vert", "Shaders/Phong.frag"))
-	{
-		return false;
-	}
-
-	mMeshShader->SetActive();
-	// Set the view-projection matrix
+	// Set the view-projection matrix - basic mesh & phong
 	mView = Matrix4::CreateLookAt(Vector3::Zero, Vector3::UnitX, Vector3::UnitZ);
 	mProjection = Matrix4::CreatePerspectiveFOV(Math::ToRadians(70.0f),
 		mScreenWidth, mScreenHeight, 25.0f, 10000.0f);
-	mMeshShader->SetMatrixUniform("uViewProj", mView * mProjection);
+	viewProj = mView * mProjection;
+
+	// Create basic mesh shader
+	mBasicMeshShader = new Shader();
+	if (!mBasicMeshShader->Load("Shaders/BasicMesh.vert", "Shaders/BasicMesh.frag"))
+	{
+		return false;
+	}
+	mBasicMeshShader->SetActive();
+	mBasicMeshShader->SetMatrixUniform("uViewProj", viewProj);
+
+	// Create phong shader
+	mPhongShader = new Shader();
+	if (!mPhongShader->Load("Shaders/Phong.vert", "Shaders/Phong.frag"))
+	{
+		return false;
+	}
+	mPhongShader->SetActive();
+	mPhongShader->SetMatrixUniform("uViewProj", viewProj);
+
 	return true;
 }
 
@@ -295,8 +322,10 @@ void Renderer::SetLightUniforms(Shader* shader)
 	Matrix4 invView = mView;
 	invView.Invert();
 	shader->SetVectorUniform("uCameraPos", invView.GetTranslation());
+	
 	// Ambient light
 	shader->SetVectorUniform("uAmbientLight", mAmbientLight);
+	
 	// Directional light
 	shader->SetVectorUniform("uDirLight.mDirection",
 		mDirLight.mDirection);
@@ -304,4 +333,20 @@ void Renderer::SetLightUniforms(Shader* shader)
 		mDirLight.mDiffuseColor);
 	shader->SetVectorUniform("uDirLight.mSpecColor",
 		mDirLight.mSpecColor);
+
+	// Point light
+	for (int i = 0; i < mPtLights.size(); i++) {
+		char name[50];
+
+		snprintf(name, 50, "uPtLights[%d].mPosition", i);
+		shader->SetVectorUniform(name, mPtLights[i].mPosition);
+		snprintf(name, 50, "uPtLights[%d].mDiffuseColor", i);
+		shader->SetVectorUniform(name, mPtLights[i].mDiffuseColor);
+		snprintf(name, 50, "uPtLights[%d].mSpecColor", i);
+		shader->SetVectorUniform(name, mPtLights[i].mSpecColor);
+		snprintf(name, 50, "uPtLights[%d].mSpecPower", i);
+		shader->SetFloatUniform(name, mPtLights[i].mSpecPower);
+		snprintf(name, 50, "uPtLights[%d].mFallOffRange", i);
+		shader->SetFloatUniform(name, mPtLights[i].mFallOffRange);
+	}
 }

@@ -34,6 +34,14 @@ struct DirectionalLight
 	vec3 mSpecColor;
 };
 
+struct PointLight {
+	vec3 mPosition;
+	vec3 mDiffuseColor;
+	vec3 mSpecColor;
+	float mSpecPower;
+	float mFallOffRange;
+};
+
 // Uniforms for lighting
 // Camera position (in world space)
 uniform vec3 uCameraPos;
@@ -44,6 +52,9 @@ uniform vec3 uAmbientLight;
 
 // Directional Light
 uniform DirectionalLight uDirLight;
+
+// Point Light
+uniform PointLight uPtLights[3];
 
 void main()
 {
@@ -64,6 +75,24 @@ void main()
 		vec3 Diffuse = uDirLight.mDiffuseColor * NdotL;
 		vec3 Specular = uDirLight.mSpecColor * pow(max(0.0, dot(R, V)), uSpecPower);
 		Phong += Diffuse + Specular;
+	}
+
+	for(int i = 0; i < 3; i++)
+	{
+		L = normalize(uPtLights[i].mPosition - fragWorldPos);
+		R = normalize(reflect(-L, N));
+
+		NdotL = dot(N, L);
+		if(NdotL > 0)
+		{
+			float Distance = length(uPtLights[i].mPosition - fragWorldPos);
+			if (Distance < uPtLights[i].mFallOffRange)
+			{
+				vec3 Diffuse = uPtLights[i].mDiffuseColor * NdotL;
+				vec3 Specular = uPtLights[i].mSpecColor * pow(max(0.0, dot(R, V)), uPtLights[i].mSpecPower);
+				Phong += Diffuse + Specular;
+			}
+		}
 	}
 
 	// Final color is texture color times phong light (alpha = 1)

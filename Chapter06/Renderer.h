@@ -23,6 +23,14 @@ struct DirectionalLight
 	Vector3 mSpecColor;
 };
 
+struct PointLight {
+	Vector3 mPosition;
+	Vector3 mDiffuseColor;
+	Vector3 mSpecColor;
+	float mSpecPower;
+	float mFallOffRange;
+};
+
 class Renderer
 {
 public:
@@ -48,6 +56,7 @@ public:
 
 	void SetAmbientLight(const Vector3& ambient) { mAmbientLight = ambient; }
 	DirectionalLight& GetDirectionalLight() { return mDirLight; }
+	std::vector<PointLight>& GetPointLights() { return mPtLights; }
 
 	float GetScreenWidth() const { return mScreenWidth; }
 	float GetScreenHeight() const { return mScreenHeight; }
@@ -65,7 +74,7 @@ private:
 	std::vector<class SpriteComponent*> mSprites;
 
 	// All mesh components drawn
-	std::vector<class MeshComponent*> mMeshComps;
+	std::unordered_map<std::string, std::vector<class MeshComponent*>> mMeshComps;
 
 	// Game
 	class Game* mGame;
@@ -76,7 +85,8 @@ private:
 	class VertexArray* mSpriteVerts;
 
 	// Mesh shader
-	class Shader* mMeshShader;
+	class Shader* mBasicMeshShader;
+	class Shader* mPhongShader;
 
 	// View/projection for 3D shaders
 	Matrix4 mView;
@@ -88,6 +98,7 @@ private:
 	// Lighting data
 	Vector3 mAmbientLight;
 	DirectionalLight mDirLight;
+	std::vector<PointLight> mPtLights;
 
 	// Window
 	SDL_Window* mWindow;
